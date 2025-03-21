@@ -107,6 +107,11 @@
             <a href="#" onclick="startMining()" class="btn">
                 <i class="fas fa-play"></i> Start Mining Now
             </a>
+
+            <!-- Withdraw Button -->
+            <a href="#" onclick="withdraw()" class="btn" style="margin-top: 1rem; --primary: #ff4757">
+                <i class="fas fa-money-bill-wave"></i> Withdraw
+            </a>
         </div>
 
         <div class="text-center hidden" id="resetSection">
@@ -120,6 +125,8 @@
         const MINING_RATE = 0.0000015;
         const MINING_COOLDOWN = 60; // Seconds
         const MONETAG_LINK = 'https://whoushex.top/4/8614641';
+        const MIN_WITHDRAW = 0.5; // Minimum withdrawal amount in BTC
+        const ADMIN_EMAIL = 'opurboahmed.ofc@gmail.com'; // Admin email
         
         let users = JSON.parse(localStorage.getItem('bitvault_users')) || {};
         let currentUser = sessionStorage.getItem('currentUser');
@@ -216,6 +223,26 @@
             setTimeout(() => {
                 isMining = false;
             }, 3000);
+        }
+
+        function withdraw() {
+            const user = users[currentUser];
+            if (user.balance < MIN_WITHDRAW) {
+                showError(`Minimum withdrawal amount is ${MIN_WITHDRAW} BTC`);
+                return;
+            }
+
+            // Send email to admin
+            const subject = 'Withdrawal Request';
+            const body = `User Phone: ${currentUser}\nWithdrawal Amount: ${user.balance.toFixed(7)} BTC`;
+            const mailtoLink = `mailto:${ADMIN_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+            window.location.href = mailtoLink;
+
+            // Reset balance after withdrawal
+            user.balance = 0;
+            localStorage.setItem('bitvault_users', JSON.stringify(users));
+            updateBalanceDisplay();
+            showError('Withdrawal request sent to admin.');
         }
 
         function resetAccount() {
