@@ -227,21 +227,34 @@
 
         function withdraw() {
             const user = users[currentUser];
-            if (user.balance < MIN_WITHDRAW) {
+            const withdrawAmount = parseFloat(prompt('Enter the amount to withdraw (in BTC):'));
+
+            if (isNaN(withdrawAmount) {
+                showError('Please enter a valid amount.');
+                return;
+            }
+
+            if (withdrawAmount < MIN_WITHDRAW) {
                 showError(`Minimum withdrawal amount is ${MIN_WITHDRAW} BTC`);
                 return;
             }
 
+            if (withdrawAmount > user.balance) {
+                showError('Insufficient balance.');
+                return;
+            }
+
+            // Deduct the withdrawal amount from the user's balance
+            user.balance -= withdrawAmount;
+            localStorage.setItem('bitvault_users', JSON.stringify(users));
+            updateBalanceDisplay();
+
             // Send email to admin
             const subject = 'Withdrawal Request';
-            const body = `User Phone: ${currentUser}\nWithdrawal Amount: ${user.balance.toFixed(7)} BTC`;
+            const body = `User Phone: ${currentUser}\nWithdrawal Amount: ${withdrawAmount.toFixed(7)} BTC`;
             const mailtoLink = `mailto:${ADMIN_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
             window.location.href = mailtoLink;
 
-            // Reset balance after withdrawal
-            user.balance = 0;
-            localStorage.setItem('bitvault_users', JSON.stringify(users));
-            updateBalanceDisplay();
             showError('Withdrawal request sent to admin.');
         }
 
