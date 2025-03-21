@@ -7,16 +7,79 @@
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        /* Previous styles remain the same */
+        :root { --primary: #25cb7e; }
+        * { box-sizing: border-box; margin: 0; font-family: 'Roboto', sans-serif; }
+        body { background: #0a0e17; color: #fff; min-height: 100vh; }
         
-        .withdraw-form { max-width: 500px; margin: 2rem auto; }
-        .withdraw-form input { margin-bottom: 1rem; }
-        .withdraw-form .btn { width: 100%; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 2rem; }
+        
+        .header { text-align: center; padding: 2rem 0; border-bottom: 1px solid #1c2330; }
+        
+        .dashboard { background: linear-gradient(45deg, #121a24, #0d131a); border-radius: 15px; 
+                    padding: 2rem; margin: 2rem 0; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+                    
+        .balance { font-size: 3rem; font-weight: 700; color: var(--primary); 
+                  text-shadow: 0 0 15px rgba(37,203,126,0.3); margin: 1rem 0; }
+                  
+        .mining-card { background: #1c2330; border-radius: 12px; padding: 2rem; text-align: center;
+                      transition: transform 0.3s ease; cursor: pointer; }
+        .mining-card:hover { transform: translateY(-5px); }
+        
+        .btn { background: var(--primary); color: #fff; padding: 1rem 2rem; 
+              border-radius: 8px; text-decoration: none; display: inline-block;
+              font-weight: 700; transition: all 0.3s ease; border: 2px solid var(--primary); }
+        .btn:hover { background: transparent; color: var(--primary); }
+        
+        .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); 
+                gap: 1.5rem; margin: 2rem 0; }
+                
+        .cooldown { color: #ff4757; margin: 1rem 0; }
+        
+        .glass-effect { background: rgba(255,255,255,0.05); backdrop-filter: blur(10px); 
+                       border: 1px solid rgba(255,255,255,0.1); }
+        
+        .auth-form { max-width: 400px; margin: 2rem auto; padding: 2rem; }
+        .form-group { margin-bottom: 1rem; }
+        input { width: 100%; padding: 0.8rem; background: #1c2330; border: 1px solid #2a3443; 
+               color: #fff; border-radius: 5px; }
+        .hidden { display: none; }
     </style>
 </head>
 <body>
     <div class="container">
-        <!-- Previous HTML remains the same until dashboard -->
+        <header class="header">
+            <h1><i class="fab fa-bitcoin"></i> BitVault Pro</h1>
+            <p>Professional Cloud Mining Platform</p>
+        </header>
+
+        <!-- Login Form -->
+        <div id="authSection" class="auth-form glass-effect">
+            <div id="loginForm">
+                <h2>Login</h2>
+                <div class="form-group">
+                    <input type="number" id="loginPhone" placeholder="Phone Number">
+                </div>
+                <div class="form-group">
+                    <input type="password" id="loginPassword" placeholder="Password">
+                </div>
+                <button class="btn" onclick="login()">Login</button>
+                <p style="margin-top: 1rem;">Don't have an account? <a href="#" onclick="showRegister()">Register</a></p>
+                <div id="authError" class="cooldown hidden"></div>
+            </div>
+
+            <!-- Register Form -->
+            <div id="registerForm" class="hidden">
+                <h2>Register</h2>
+                <div class="form-group">
+                    <input type="number" id="registerPhone" placeholder="Phone Number">
+                </div>
+                <div class="form-group">
+                    <input type="password" id="registerPassword" placeholder="Password">
+                </div>
+                <button class="btn" onclick="register()">Register</button>
+                <p style="margin-top: 1rem;">Already have an account? <a href="#" onclick="showLogin()">Login</a></p>
+            </div>
+        </div>
 
         <!-- Dashboard -->
         <div id="dashboard" class="dashboard glass-effect hidden">
@@ -44,76 +107,135 @@
             <a href="#" onclick="startMining()" class="btn">
                 <i class="fas fa-play"></i> Start Mining Now
             </a>
-
-            <!-- Withdraw Section -->
-            <div class="withdraw-form">
-                <h2>Withdraw BTC</h2>
-                <input type="text" id="btcAddress" placeholder="Your BTC Address">
-                <input type="number" id="withdrawAmount" placeholder="Amount (Minimum 0.5 BTC)">
-                <button class="btn" onclick="handleWithdraw()">
-                    <i class="fas fa-coins"></i> Request Withdrawal
-                </button>
-                <div id="withdrawMessage" class="cooldown hidden"></div>
-            </div>
         </div>
 
-        <!-- Previous reset section remains the same -->
+        <div class="text-center hidden" id="resetSection">
+            <a href="#" onclick="resetAccount()" class="btn" style="--primary: #ff4757">
+                <i class="fas fa-sync"></i> Reset Session
+            </a>
+        </div>
     </div>
 
     <script>
-        // Previous JavaScript remains the same until the end
+        const MINING_RATE = 0.0000015;
+        const MINING_COOLDOWN = 60; // Seconds
+        const MONETAG_LINK = 'https://whoushex.top/4/8614641';
+        
+        let users = JSON.parse(localStorage.getItem('bitvault_users')) || {};
+        let currentUser = sessionStorage.getItem('currentUser');
 
-        function handleWithdraw() {
-            const user = users[currentUser];
-            const btcAddress = document.getElementById('btcAddress').value;
-            const amount = parseFloat(document.getElementById('withdrawAmount').value);
-            
-            // Validation
-            if(!btcAddress || btcAddress.length < 25) {
-                showWithdrawMessage('Please enter a valid BTC address');
-                return;
-            }
-            
-            if(isNaN(amount) || amount < 0.5) {
-                showWithdrawMessage('Minimum withdrawal amount is 0.5 BTC');
-                return;
-            }
-            
-            if(user.balance < amount) {
-                showWithdrawMessage('Insufficient balance');
-                return;
-            }
-
-            // Simulate admin notification
-            const adminEmail = 'opurboahmed.ofc@gmail.com';
-            const message = `
-                New Withdrawal Request:
-                - User: ${currentUser}
-                - BTC Address: ${btcAddress}
-                - Amount: ${amount} BTC
-                - Current Balance: ${user.balance} BTC
-            `;
-            
-            console.log(`Email to ${adminEmail}: ${message}`);
-            alert('Withdrawal request sent to admin. You will be notified when processed.');
-
-            // Update balance
-            user.balance -= amount;
-            localStorage.setItem('bitvault_users', JSON.stringify(users));
-            updateBalanceDisplay();
-            
-            showWithdrawMessage('Withdrawal request successful!', 'success');
+        // Initial check
+        if(currentUser) {
+            showDashboard();
         }
 
-        function showWithdrawMessage(message, type = 'error') {
-            const elem = document.getElementById('withdrawMessage');
+        function showDashboard() {
+            document.getElementById('authSection').classList.add('hidden');
+            document.getElementById('dashboard').classList.remove('hidden');
+            document.getElementById('resetSection').classList.remove('hidden');
+            updateBalanceDisplay();
+        }
+
+        function showRegister() {
+            document.getElementById('loginForm').classList.add('hidden');
+            document.getElementById('registerForm').classList.remove('hidden');
+        }
+
+        function showLogin() {
+            document.getElementById('registerForm').classList.add('hidden');
+            document.getElementById('loginForm').classList.remove('hidden');
+        }
+
+        function register() {
+            const phone = document.getElementById('registerPhone').value;
+            const password = document.getElementById('registerPassword').value;
+            
+            if(!phone || !password) {
+                showAuthError('Please fill all fields');
+                return;
+            }
+            
+            if(users[phone]) {
+                showAuthError('User already exists');
+                return;
+            }
+
+            users[phone] = {
+                password: password,
+                balance: 0,
+                lastView: 0
+            };
+            
+            localStorage.setItem('bitvault_users', JSON.stringify(users));
+            showAuthError('Registration successful!', 'success');
+            showLogin();
+        }
+
+        function login() {
+            const phone = document.getElementById('loginPhone').value;
+            const password = document.getElementById('loginPassword').value;
+            
+            if(!users[phone]) {
+                showAuthError('User not found');
+                return;
+            }
+            
+            if(users[phone].password !== password) {
+                showAuthError('Incorrect password');
+                return;
+            }
+
+            sessionStorage.setItem('currentUser', phone);
+            showDashboard();
+        }
+
+        function startMining() {
+            const user = users[currentUser];
+            const cooldown = Math.floor(Date.now()/1000) - user.lastView;
+            
+            if(cooldown < MINING_COOLDOWN) {
+                showError(`Please wait ${MINING_COOLDOWN - cooldown} seconds before next view`);
+                return;
+            }
+            
+            user.balance += MINING_RATE;
+            user.lastView = Math.floor(Date.now()/1000);
+            localStorage.setItem('bitvault_users', JSON.stringify(users));
+            updateBalanceDisplay();
+            window.location.href = MONETAG_LINK;
+        }
+
+        function resetAccount() {
+            sessionStorage.removeItem('currentUser');
+            localStorage.removeItem('bitvault_users');
+            window.location.reload();
+        }
+
+        function updateBalanceDisplay() {
+            const balance = users[currentUser].balance.toFixed(7);
+            document.getElementById('btcBalance').textContent = balance;
+        }
+
+        function showAuthError(message, type = 'error') {
+            const elem = document.getElementById('authError');
             elem.textContent = message;
             elem.classList.remove('hidden');
             elem.style.color = type === 'error' ? '#ff4757' : '#25cb7e';
-            setTimeout(() => elem.classList.add('hidden'), 5000);
         }
 
-        // Previous event listeners remain the same
+        function showError(message) {
+            const elem = document.getElementById('errorMessage');
+            elem.textContent = message;
+            elem.classList.remove('hidden');
+            setTimeout(() => elem.classList.add('hidden'), 3000);
+        }
+
+        // Balance animation
+        window.addEventListener('DOMContentLoaded', () => {
+            const balance = document.querySelector('.balance');
+            balance.style.opacity = 0;
+            setTimeout(() => balance.style.opacity = 1, 500);
+        });
     </script>
 </body>
 </html>
