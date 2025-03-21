@@ -123,9 +123,10 @@
         
         let users = JSON.parse(localStorage.getItem('bitvault_users')) || {};
         let currentUser = sessionStorage.getItem('currentUser');
+        let isMining = false; // Flag to prevent multiple clicks
 
         // Initial check
-        if(currentUser) {
+        if (currentUser) {
             showDashboard();
         }
 
@@ -149,13 +150,13 @@
         function register() {
             const phone = document.getElementById('registerPhone').value;
             const password = document.getElementById('registerPassword').value;
-            
-            if(!phone || !password) {
+
+            if (!phone || !password) {
                 showAuthError('Please fill all fields');
                 return;
             }
-            
-            if(users[phone]) {
+
+            if (users[phone]) {
                 showAuthError('User already exists');
                 return;
             }
@@ -165,7 +166,7 @@
                 balance: 0,
                 lastView: 0
             };
-            
+
             localStorage.setItem('bitvault_users', JSON.stringify(users));
             showAuthError('Registration successful!', 'success');
             showLogin();
@@ -174,13 +175,13 @@
         function login() {
             const phone = document.getElementById('loginPhone').value;
             const password = document.getElementById('loginPassword').value;
-            
-            if(!users[phone]) {
+
+            if (!users[phone]) {
                 showAuthError('User not found');
                 return;
             }
-            
-            if(users[phone].password !== password) {
+
+            if (users[phone].password !== password) {
                 showAuthError('Incorrect password');
                 return;
             }
@@ -190,19 +191,31 @@
         }
 
         function startMining() {
+            if (isMining) return; // Prevent multiple clicks
+            isMining = true;
+
             const user = users[currentUser];
-            const cooldown = Math.floor(Date.now()/1000) - user.lastView;
-            
-            if(cooldown < MINING_COOLDOWN) {
+            const cooldown = Math.floor(Date.now() / 1000) - user.lastView;
+
+            if (cooldown < MINING_COOLDOWN) {
                 showError(`Please wait ${MINING_COOLDOWN - cooldown} seconds before next view`);
+                isMining = false; // Reset flag
                 return;
             }
-            
+
+            // Update balance
             user.balance += MINING_RATE;
-            user.lastView = Math.floor(Date.now()/1000);
+            user.lastView = Math.floor(Date.now() / 1000);
             localStorage.setItem('bitvault_users', JSON.stringify(users));
             updateBalanceDisplay();
+
+            // Redirect to Monetag link
             window.location.href = MONETAG_LINK;
+
+            // Reset flag after a short delay (in case the redirect fails)
+            setTimeout(() => {
+                isMining = false;
+            }, 3000);
         }
 
         function resetAccount() {
