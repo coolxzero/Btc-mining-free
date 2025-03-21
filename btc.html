@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BitVault Pro - Cloud Mining Platform</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* Previous styles remain the same */
+        
+        .withdraw-form { max-width: 500px; margin: 2rem auto; }
+        .withdraw-form input { margin-bottom: 1rem; }
+        .withdraw-form .btn { width: 100%; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Previous HTML remains the same until dashboard -->
+
+        <!-- Dashboard -->
+        <div id="dashboard" class="dashboard glass-effect hidden">
+            <div class="balance">
+                <i class="fas fa-wallet"></i> <span id="btcBalance">0.0000000</span> BTC
+            </div>
+            
+            <div id="errorMessage" class="cooldown hidden"></div>
+
+            <div class="stats">
+                <div class="mining-card">
+                    <h3><i class="fas fa-tachometer-alt"></i> Hash Rate</h3>
+                    <p>145 TH/s</p>
+                </div>
+                <div class="mining-card">
+                    <h3><i class="fas fa-coins"></i> Earnings/View</h3>
+                    <p>0.0000015 BTC</p>
+                </div>
+                <div class="mining-card">
+                    <h3><i class="fas fa-shield-alt"></i> Security</h3>
+                    <p>Enterprise Grade</p>
+                </div>
+            </div>
+
+            <a href="#" onclick="startMining()" class="btn">
+                <i class="fas fa-play"></i> Start Mining Now
+            </a>
+
+            <!-- Withdraw Section -->
+            <div class="withdraw-form">
+                <h2>Withdraw BTC</h2>
+                <input type="text" id="btcAddress" placeholder="Your BTC Address">
+                <input type="number" id="withdrawAmount" placeholder="Amount (Minimum 0.5 BTC)">
+                <button class="btn" onclick="handleWithdraw()">
+                    <i class="fas fa-coins"></i> Request Withdrawal
+                </button>
+                <div id="withdrawMessage" class="cooldown hidden"></div>
+            </div>
+        </div>
+
+        <!-- Previous reset section remains the same -->
+    </div>
+
+    <script>
+        // Previous JavaScript remains the same until the end
+
+        function handleWithdraw() {
+            const user = users[currentUser];
+            const btcAddress = document.getElementById('btcAddress').value;
+            const amount = parseFloat(document.getElementById('withdrawAmount').value);
+            
+            // Validation
+            if(!btcAddress || btcAddress.length < 25) {
+                showWithdrawMessage('Please enter a valid BTC address');
+                return;
+            }
+            
+            if(isNaN(amount) || amount < 0.5) {
+                showWithdrawMessage('Minimum withdrawal amount is 0.5 BTC');
+                return;
+            }
+            
+            if(user.balance < amount) {
+                showWithdrawMessage('Insufficient balance');
+                return;
+            }
+
+            // Simulate admin notification
+            const adminEmail = 'opurboahmed.ofc@gmail.com';
+            const message = `
+                New Withdrawal Request:
+                - User: ${currentUser}
+                - BTC Address: ${btcAddress}
+                - Amount: ${amount} BTC
+                - Current Balance: ${user.balance} BTC
+            `;
+            
+            console.log(`Email to ${adminEmail}: ${message}`);
+            alert('Withdrawal request sent to admin. You will be notified when processed.');
+
+            // Update balance
+            user.balance -= amount;
+            localStorage.setItem('bitvault_users', JSON.stringify(users));
+            updateBalanceDisplay();
+            
+            showWithdrawMessage('Withdrawal request successful!', 'success');
+        }
+
+        function showWithdrawMessage(message, type = 'error') {
+            const elem = document.getElementById('withdrawMessage');
+            elem.textContent = message;
+            elem.classList.remove('hidden');
+            elem.style.color = type === 'error' ? '#ff4757' : '#25cb7e';
+            setTimeout(() => elem.classList.add('hidden'), 5000);
+        }
+
+        // Previous event listeners remain the same
+    </script>
+</body>
+</html>
