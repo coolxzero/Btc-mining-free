@@ -199,10 +199,16 @@
             }
 
             sessionStorage.setItem('currentUser', phone);
+            currentUser = phone; // Update currentUser
             showDashboard();
         }
 
         function startMining() {
+            if (!currentUser) {
+                showError('Please log in to start mining.');
+                return;
+            }
+
             if (isMining) return; // Prevent multiple clicks
             isMining = true;
 
