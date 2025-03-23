@@ -183,6 +183,11 @@
             const phone = document.getElementById('loginPhone').value;
             const password = document.getElementById('loginPassword').value;
 
+            if (!phone || !password) {
+                showAuthError('Please fill all fields');
+                return;
+            }
+
             if (!users[phone]) {
                 showAuthError('User not found');
                 return;
@@ -229,7 +234,7 @@
             const user = users[currentUser];
             const withdrawAmount = parseFloat(prompt('Enter the amount to withdraw (in BTC):'));
 
-            if (isNaN(withdrawAmount) {
+            if (isNaN(withdrawAmount)) {
                 showError('Please enter a valid amount.');
                 return;
             }
